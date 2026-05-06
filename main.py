@@ -1,3 +1,4 @@
+import json
 from fastapi import FastAPI, Request
 
 app = FastAPI()
@@ -21,6 +22,13 @@ def verify_webhook(
 
 @app.post("/webhook/whatsapp")
 async def receive_message(request: Request):
-    data = await request.json()
-    print("Incoming webhook:", data)
-    return {"status": "ok"}
+    try:
+        raw_body = await request.body()
+        print("Raw body:", raw_body)
+        
+        data = json.loads(raw_body)
+        print("Incoming webhook:", data)
+        return {"status": "ok"}
+    except Exception as e:
+        print(f"Error processing webhook: {e}")
+        return {"status": "error", "message": str(e)}
