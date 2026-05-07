@@ -86,7 +86,7 @@ class Message(Base):
     direction = Column(String(20), nullable=False)
     type = Column(String(50), nullable=False)
     text_content = Column(Text, nullable=True)
-    message_timestamp = Column(TIMESTAMP, nullable=False)
+    message_timestamp = Column(TIMESTAMP(timezone=True), nullable=False)
     processed = Column(Boolean, default=False, nullable=False)
     raw_payload = Column(JSON, nullable=False)
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)

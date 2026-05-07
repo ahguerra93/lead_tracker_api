@@ -39,9 +39,14 @@ async def receive_message(
     FastAPI validates the payload against `WebhookPayload` automatically
     and returns 422 if the body does not conform to the schema.
     """
+    print(f"[WEBHOOK] Received payload: {payload.model_dump()}", flush=True)
     try:
+        print(f"[WEBHOOK] Processing webhook with {len(payload.entry)} entries", flush=True)
         await service.process_incoming_webhook(payload)
+        print(f"[WEBHOOK] Successfully processed webhook", flush=True)
         return {"status": "ok"}
     except Exception as e:
-        print(f"Error processing webhook: {e}")
+        print(f"[WEBHOOK] Error processing webhook: {e}", flush=True)
+        import traceback
+        traceback.print_exc()
         raise HTTPException(status_code=500, detail="Internal server error")

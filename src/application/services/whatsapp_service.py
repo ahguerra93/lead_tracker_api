@@ -27,15 +27,20 @@ class WhatsAppWebhookService:
     async def process_incoming_webhook(self, payload: WebhookPayload) -> None:
         """Entry point: parse a typed WhatsApp Cloud API webhook payload and
         persist the contacts, conversations, messages, and media it contains."""
+        print(f"[SERVICE] process_incoming_webhook called with object: {payload.object}", flush=True)
         if payload.object != "whatsapp_business_account":
+            print(f"[SERVICE] Ignoring non-whatsapp_business_account object", flush=True)
             return
 
+        print(f"[SERVICE] Processing {len(payload.entry)} entries", flush=True)
         async with self._uow as uow:
             for entry in payload.entry:
                 for change in entry.changes:
                     if change.field == "messages":
+                        print(f"[SERVICE] Processing messages change", flush=True)
                         await self._handle_messages(uow, change.value)
             await uow.commit()
+        print(f"[SERVICE] Successfully committed all changes", flush=True)
 
     # ------------------------------------------------------------------
     # Private helpers
