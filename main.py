@@ -1,34 +1,17 @@
-import json
-from fastapi import FastAPI, Request
+from contextlib import asynccontextmanager
 
-app = FastAPI()
+from fastapi import FastAPI
 
-VERIFY_TOKEN = "my_super_duper_looper_secret_token_123"  # you choose this
+from src.infrastructure.db import create_all_tables
+from src.presentation.api.whatsapp import router as whatsapp_router
 
-@app.get("/")
-def home():
-    
-    return {"welcome": "welcome to the WhatsApp webhook server!"}
 
-@app.get("/webhook/whatsapp")
-def verify_webhook(
-    hub_mode: str | None = None,
-    hub_challenge: str | None = None,
-    hub_verify_token: str | None = None,
-):
-    if hub_mode == "subscribe" and hub_verify_token == VERIFY_TOKEN:
-        return int(hub_challenge) if hub_challenge is not None else 0
-    return {"error": "Verification failed"}
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    await create_all_tables()
+    yield
 
-@app.post("/webhook/whatsapp")
-async def receive_message(request: Request):
-    try:
-        raw_body = await request.body()
-        print("Raw body:", raw_body)
-        
-        data = json.loads(raw_body)
-        print("Incoming webhook:", data)
-        return {"status": "ok"}
-    except Exception as e:
-        print(f"Error processing webhook: {e}")
-        return {"status": "error", "message": str(e)}
+
+app = FastAPI(lifespan=lifespan)
+
+app.include_router(whatsapp_router)

@@ -1,4 +1,5 @@
 annotated-types==0.7.0
+asyncpg
 anyio==4.13.0
 certifi==2026.4.22
 click==8.3.3
@@ -26,6 +27,7 @@ PyYAML==6.0.3
 rich==15.0.0
 rich-toolkit==0.19.7
 shellingham==1.5.4
+sqlalchemy[asyncio]==2.0.35
 starlette==1.0.0
 typer==0.24.2
 typing-inspection==0.4.2
