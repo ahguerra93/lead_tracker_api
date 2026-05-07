@@ -154,7 +154,22 @@ class WhatsAppWebhookService:
         conversation_id: int,
         contact_id: int,
     ) -> Message:
+        # Get text content from text field
         text_content: Optional[str] = msg.text.body if msg.text else None
+        
+        # Also check for caption in media if no text
+        if not text_content:
+            media = (
+                msg.image
+                or msg.document
+                or msg.video
+                or msg.audio
+                or msg.sticker
+            )
+            if media and media.caption:
+                text_content = media.caption
+                print(f"[SERVICE] Extracted caption from media: {text_content}", flush=True)
+        
         msg_timestamp = datetime.fromtimestamp(int(msg.timestamp), tz=timezone.utc)
 
         return Message(
