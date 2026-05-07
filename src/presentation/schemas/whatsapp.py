@@ -34,6 +34,7 @@ class WebhookMediaContent(BaseModel):
     url: Optional[str] = None        # Downloadable URL (present in webhook events)
     mime_type: Optional[str] = None
     sha256: Optional[str] = None
+    caption: Optional[str] = None    # Text caption attached to the media
 
 
 class WebhookMessage(BaseModel):
