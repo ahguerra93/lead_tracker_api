@@ -4,7 +4,7 @@ These handlers are intentionally thin: they own only HTTP concerns
 (parsing requests, returning responses, status codes). All business
 logic is delegated to the application service layer.
 """
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Request
 
 from config import WebhookConfig
 from ..dependencies import WhatsAppServiceDep
@@ -31,7 +31,7 @@ def verify_webhook(
 
 @router.post("/webhook/whatsapp")
 async def receive_message(
-    payload: WebhookPayload,
+    request: Request,
     service: WhatsAppServiceDep,
 ):
     """Receive a WhatsApp Cloud API webhook event.
@@ -39,8 +39,14 @@ async def receive_message(
     FastAPI validates the payload against `WebhookPayload` automatically
     and returns 422 if the body does not conform to the schema.
     """
-    print(f"[WEBHOOK] Received payload: {payload.model_dump()}", flush=True)
+    # Get raw request body before parsing
+    raw_body = await request.body()
+    print(f"[WEBHOOK] RAW REQUEST BODY: {raw_body.decode('utf-8')}", flush=True)
+    
     try:
+        # Parse raw body to WebhookPayload
+        payload = WebhookPayload.model_validate_json(raw_body)
+        print(f"[WEBHOOK] Parsed payload model: {payload.model_dump()}", flush=True)
         print(f"[WEBHOOK] Processing webhook with {len(payload.entry)} entries", flush=True)
         await service.process_incoming_webhook(payload)
         print(f"[WEBHOOK] Successfully processed webhook", flush=True)
