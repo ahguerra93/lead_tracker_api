@@ -16,7 +16,7 @@ class Contact(BaseModel):
 
     id: Optional[int] = None
     wa_id: str
-    user_id: Optional[int] = None
+    user_id: Optional[str] = None
     name: Optional[str] = None
     created_at: datetime = Field(default_factory=datetime.utcnow)
 

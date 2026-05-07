@@ -28,7 +28,7 @@ class Contact(Base):
 
     id = Column(Integer, primary_key=True)
     wa_id = Column(String(255), unique=True, nullable=False)
-    user_id = Column(Integer, nullable=True)
+    user_id = Column(String(255), nullable=True)
     name = Column(String(255), nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
 

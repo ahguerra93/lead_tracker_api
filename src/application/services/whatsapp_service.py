@@ -50,42 +50,51 @@ class WhatsAppWebhookService:
         self, uow: IUnitOfWork, value: WebhookValue
     ) -> None:
         phone_number_id: str = value.metadata.phone_number_id
+        print(f"[SERVICE] Handling {len(value.messages)} messages", flush=True)
 
         for msg in value.messages:
+            print(f"[SERVICE] Processing message id={msg.id}, type={msg.type}", flush=True)
             # 1. Get or create contact
             contact = await self._get_or_create_contact(
                 uow, msg.from_, value.contacts
             )
+            print(f"[SERVICE] Got/created contact: {contact.model_dump()}", flush=True)
 
             # 2. Get or create conversation
             conversation = await self._get_or_create_conversation(
                 uow, contact.id, phone_number_id  # type: ignore[arg-type]
             )
+            print(f"[SERVICE] Got/created conversation: {conversation.model_dump()}", flush=True)
 
             # 3. Deduplicate: skip if message already stored
             if await uow.messages.get_by_whatsapp_id(msg.id) is not None:
+                print(f"[SERVICE] Message {msg.id} already exists, skipping", flush=True)
                 continue
 
             # 4. Persist message
-            message = await uow.messages.save(
-                self._build_message(msg, conversation.id, contact.id)  # type: ignore[arg-type]
-            )
+            built_message = self._build_message(msg, conversation.id, contact.id)  # type: ignore[arg-type]
+            print(f"[SERVICE] Built message: {built_message.model_dump()}", flush=True)
+            message = await uow.messages.save(built_message)
+            print(f"[SERVICE] Saved message with id={message.id}", flush=True)
 
             # 5. Persist media attachment if present
             media_content = self._extract_media(msg)
             if media_content and message.id is not None:
-                await uow.media.save(
-                    Media(
-                        message_id=message.id,
-                        media_type=msg.type,
-                        mime_type=media_content.mime_type,
-                        sha256=media_content.sha256,
-                        meta_media_id=media_content.id,
-                        # Use the downloadable URL; fall back to the media ID
-                        # if the URL is absent (e.g. some sticker payloads).
-                        media_url=media_content.url or media_content.id,
-                    )
+                media = Media(
+                    message_id=message.id,
+                    media_type=msg.type,
+                    mime_type=media_content.mime_type,
+                    sha256=media_content.sha256,
+                    meta_media_id=media_content.id,
+                    # Use the downloadable URL; fall back to the media ID
+                    # if the URL is absent (e.g. some sticker payloads).
+                    media_url=media_content.url or media_content.id,
                 )
+                print(f"[SERVICE] Built media: {media.model_dump()}", flush=True)
+                saved_media = await uow.media.save(media)
+                print(f"[SERVICE] Saved media with id={saved_media.id}", flush=True)
+            else:
+                print(f"[SERVICE] No media to persist for message {msg.id}", flush=True)
 
     @staticmethod
     async def _get_or_create_contact(
@@ -94,19 +103,27 @@ class WhatsAppWebhookService:
         contacts: List[WebhookContact],
     ) -> Contact:
         contact_name: Optional[str] = None
+        contact_user_id: Optional[str] = None
         for c in contacts:
             if c.wa_id == wa_id:
                 contact_name = c.profile.name
+                contact_user_id = c.user_id
+                print(f"[SERVICE] Found contact in webhook: name={contact_name}, user_id={contact_user_id}, wa_id={wa_id}", flush=True)
                 break
 
         contact = await uow.contacts.get_by_wa_id(wa_id)
         if contact is None:
             contact = await uow.contacts.save(
-                Contact(wa_id=wa_id, name=contact_name)
+                Contact(wa_id=wa_id, user_id=contact_user_id, name=contact_name)
             )
+            print(f"[SERVICE] Created new contact: {contact.model_dump()}", flush=True)
         elif contact_name and contact.name != contact_name:
             contact.name = contact_name
+            contact.user_id = contact_user_id
             contact = await uow.contacts.save(contact)
+            print(f"[SERVICE] Updated contact: {contact.model_dump()}", flush=True)
+        else:
+            print(f"[SERVICE] Contact already exists: {contact.model_dump()}", flush=True)
 
         return contact
 
@@ -126,6 +143,9 @@ class WhatsAppWebhookService:
                     phone_number_id=phone_number_id,
                 )
             )
+            print(f"[SERVICE] Created new conversation: {conversation.model_dump()}", flush=True)
+        else:
+            print(f"[SERVICE] Conversation already exists: {conversation.model_dump()}", flush=True)
         return conversation
 
     @staticmethod
