@@ -16,6 +16,14 @@ from ...domain.services.media_storage import IMediaStorageService
 
 class SupabaseMediaStorageService(IMediaStorageService):
     def __init__(self, url: str, service_role_key: str, bucket: str) -> None:
+        if not url:
+            raise ValueError(
+                "SUPABASE_URL is not set. Add it to your environment variables."
+            )
+        if not service_role_key:
+            raise ValueError(
+                "SUPABASE_SERVICE_ROLE_KEY is not set. Add it to your environment variables."
+            )
         self._bucket = bucket
         self._client: Client = create_client(url, service_role_key)
 
