@@ -54,5 +54,5 @@ class DatabaseConfig:
 class WebhookConfig:
     # Set WHATSAPP_VERIFY_TOKEN in your .env file for production.
     VERIFY_TOKEN: str = os.getenv(
-        "WHATSAPP_VERIFY_TOKEN", "my_super_duper_looper_secret_token_123"
+        "WHATSAPP_VERIFY_TOKEN", ""
     )
