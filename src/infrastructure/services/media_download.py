@@ -52,7 +52,9 @@ class HttpxMediaDownloadService(IMediaDownloadService):
         with open(file_path, "wb") as f:
             f.write(response.content)
 
+        file_size = os.path.getsize(file_path)
         print(f"[MEDIA] Saved media to {file_path}", flush=True)
+        print(f"[MEDIA] Saved {file_size} bytes", flush=True)
         return file_path
 
     # ------------------------------------------------------------------
