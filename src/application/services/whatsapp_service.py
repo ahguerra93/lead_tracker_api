@@ -10,6 +10,7 @@ from datetime import datetime, timezone
 from typing import List, Optional
 
 from ...domain.entities.whatsapp import Contact, Conversation, Media, Message
+from ...domain.services.media_download import IMediaDownloadService
 from ...domain.unit_of_work import IUnitOfWork
 from ...presentation.schemas.whatsapp import (
     WebhookContact,
@@ -21,8 +22,9 @@ from ...presentation.schemas.whatsapp import (
 
 
 class WhatsAppWebhookService:
-    def __init__(self, uow: IUnitOfWork) -> None:
+    def __init__(self, uow: IUnitOfWork, media_downloader: IMediaDownloadService) -> None:
         self._uow = uow
+        self._media_downloader = media_downloader
 
     async def process_incoming_webhook(self, payload: WebhookPayload) -> None:
         """Entry point: parse a typed WhatsApp Cloud API webhook payload and
@@ -93,6 +95,15 @@ class WhatsAppWebhookService:
                 print(f"[SERVICE] Built media: {media.model_dump()}", flush=True)
                 saved_media = await uow.media.save(media)
                 print(f"[SERVICE] Saved media with id={saved_media.id}", flush=True)
+
+                # Download the file to a temporary location for validation
+                if media_content.url:
+                    file_path = await self._media_downloader.download(
+                        url=media_content.url,
+                        media_id=media_content.id,
+                        mime_type=media_content.mime_type,
+                    )
+                    print(f"[SERVICE] Media file ready at {file_path}", flush=True)
             else:
                 print(f"[SERVICE] No media to persist for message {msg.id}", flush=True)
 

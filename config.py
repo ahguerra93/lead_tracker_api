@@ -56,3 +56,10 @@ class WebhookConfig:
     VERIFY_TOKEN: str = os.getenv(
         "WHATSAPP_VERIFY_TOKEN", ""
     )
+
+
+class WhatsAppConfig:
+    # Bearer token used to authenticate requests to the Meta media download API.
+    # Maps to WHATSAPP_VERIFY_TOKEN for the initial validation pipeline;
+    # replace with a dedicated META_ACCESS_TOKEN env var when moving to production.
+    META_ACCESS_TOKEN: str = os.getenv("WHATSAPP_VERIFY_TOKEN", "")
