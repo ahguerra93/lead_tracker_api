@@ -63,3 +63,9 @@ class WhatsAppConfig:
     # Maps to META_ACCESS_TOKEN for the initial validation pipeline;
     # replace with a dedicated META_ACCESS_TOKEN env var when moving to production.
     META_ACCESS_TOKEN: str = os.getenv("META_ACCESS_TOKEN", "")
+
+
+class SupabaseConfig:
+    SUPABASE_URL: str = os.getenv("SUPABASE_URL", "")
+    SUPABASE_SERVICE_ROLE_KEY: str = os.getenv("SUPABASE_SERVICE_ROLE_KEY", "")
+    MEDIA_BUCKET: str = os.getenv("SUPABASE_MEDIA_BUCKET", "whatsapp-media")

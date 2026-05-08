@@ -11,6 +11,7 @@ from typing import List, Optional
 
 from ...domain.entities.whatsapp import Contact, Conversation, Media, Message
 from ...domain.services.media_download import IMediaDownloadService
+from ...domain.services.media_storage import IMediaStorageService
 from ...domain.unit_of_work import IUnitOfWork
 from ...presentation.schemas.whatsapp import (
     WebhookContact,
@@ -22,9 +23,15 @@ from ...presentation.schemas.whatsapp import (
 
 
 class WhatsAppWebhookService:
-    def __init__(self, uow: IUnitOfWork, media_downloader: IMediaDownloadService) -> None:
+    def __init__(
+        self,
+        uow: IUnitOfWork,
+        media_downloader: IMediaDownloadService,
+        media_storage: IMediaStorageService,
+    ) -> None:
         self._uow = uow
         self._media_downloader = media_downloader
+        self._media_storage = media_storage
 
     async def process_incoming_webhook(self, payload: WebhookPayload) -> None:
         """Entry point: parse a typed WhatsApp Cloud API webhook payload and
@@ -96,7 +103,7 @@ class WhatsAppWebhookService:
                 saved_media = await uow.media.save(media)
                 print(f"[SERVICE] Saved media with id={saved_media.id}", flush=True)
 
-                # Download the file to a temporary location for validation
+                # Download the file to a temporary location, then upload to storage
                 if media_content.url:
                     file_path = await self._media_downloader.download(
                         url=media_content.url,
@@ -104,6 +111,14 @@ class WhatsAppWebhookService:
                         mime_type=media_content.mime_type,
                     )
                     print(f"[SERVICE] Media file ready at {file_path}", flush=True)
+
+                    storage_path = f"{msg.type}s/{media_content.id}{file_path.suffix}"
+                    await self._media_storage.upload(
+                        file_path=file_path,
+                        storage_path=storage_path,
+                        content_type=media_content.mime_type,
+                    )
+                    print(f"[SERVICE] Uploaded media to storage at {storage_path}", flush=True)
             else:
                 print(f"[SERVICE] No media to persist for message {msg.id}", flush=True)
 
