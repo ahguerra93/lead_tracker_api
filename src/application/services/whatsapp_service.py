@@ -119,6 +119,10 @@ class WhatsAppWebhookService:
                         content_type=media_content.mime_type,
                     )
                     print(f"[SERVICE] Uploaded media to storage at {storage_path}", flush=True)
+
+                    saved_media.storage_path = storage_path
+                    saved_media = await uow.media.save(saved_media)
+                    print(f"[SERVICE] Updated media record with storage_path={storage_path}", flush=True)
             else:
                 print(f"[SERVICE] No media to persist for message {msg.id}", flush=True)
 

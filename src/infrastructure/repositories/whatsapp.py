@@ -239,18 +239,40 @@ class SQLAlchemyMediaRepository(IMediaRepository):
             sha256=orm.sha256,
             meta_media_id=orm.meta_media_id,
             media_url=orm.media_url,
+            storage_path=orm.bucket_url,
             created_at=orm.created_at,
         )
 
     async def save(self, media: MediaEntity) -> MediaEntity:
-        orm = MediaORM(
-            message_id=media.message_id,
-            media_type=media.media_type,
-            mime_type=media.mime_type,
-            sha256=media.sha256,
-            meta_media_id=media.meta_media_id,
-            media_url=media.media_url,
-        )
-        self._session.add(orm)
+        if media.id is not None:
+            result = await self._session.execute(
+                select(MediaORM).where(MediaORM.id == media.id)
+            )
+            orm = result.scalar_one_or_none()
+            if orm:
+                orm.bucket_url = media.storage_path
+            else:
+                orm = MediaORM(
+                    message_id=media.message_id,
+                    media_type=media.media_type,
+                    mime_type=media.mime_type,
+                    sha256=media.sha256,
+                    meta_media_id=media.meta_media_id,
+                    media_url=media.media_url,
+                    bucket_url=media.storage_path,
+                )
+                self._session.add(orm)
+        else:
+            orm = MediaORM(
+                message_id=media.message_id,
+                media_type=media.media_type,
+                mime_type=media.mime_type,
+                sha256=media.sha256,
+                meta_media_id=media.meta_media_id,
+                media_url=media.media_url,
+                bucket_url=media.storage_path,
+            )
+            self._session.add(orm)
+
         await self._session.flush()
         return self._to_entity(orm)
