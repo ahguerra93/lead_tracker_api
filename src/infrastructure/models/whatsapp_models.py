@@ -116,6 +116,7 @@ class Media(Base):
     sha256 = Column(String(64), nullable=True)
     meta_media_id = Column(String(255), nullable=True)
     media_url = Column(Text, nullable=False)
+    bucket_url = Column(Text, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
 
     message = relationship("Message", back_populates="media")

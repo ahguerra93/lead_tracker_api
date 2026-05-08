@@ -69,4 +69,6 @@ class Media(BaseModel):
     sha256: Optional[str] = None
     meta_media_id: Optional[str] = None
     media_url: str
+    storage_path: Optional[str] = None
+    
     created_at: datetime = Field(default_factory=datetime.utcnow)
