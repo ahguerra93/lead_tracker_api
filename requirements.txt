@@ -29,6 +29,7 @@ rich-toolkit==0.19.7
 shellingham==1.5.4
 sqlalchemy[asyncio]==2.0.35
 starlette==1.0.0
+supabase==2.30.0
 typer==0.24.2
 typing-inspection==0.4.2
 typing_extensions==4.15.0
