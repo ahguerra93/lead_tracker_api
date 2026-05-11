@@ -12,6 +12,7 @@ from ..infrastructure.unit_of_work import SQLAlchemyUnitOfWork
 from ..infrastructure.services.media_download import HttpxMediaDownloadService
 from ..infrastructure.services.media_storage import SupabaseMediaStorageService
 from ..application.services.whatsapp_service import WhatsAppWebhookService
+from ..application.services.conversation_context_service import ConversationContextService
 from ..domain.unit_of_work import IUnitOfWork
 from ..domain.services.media_download import IMediaDownloadService
 from ..domain.services.media_storage import IMediaStorageService
@@ -42,7 +43,17 @@ def get_whatsapp_service(
     return WhatsAppWebhookService(uow, media_downloader, media_storage)
 
 
-# Convenience type alias for use in route signatures
+def get_conversation_context_service(
+    uow: Annotated[IUnitOfWork, Depends(get_unit_of_work)],
+) -> ConversationContextService:
+    return ConversationContextService(uow)
+
+
+# Convenience type aliases for use in route signatures
 WhatsAppServiceDep = Annotated[
     WhatsAppWebhookService, Depends(get_whatsapp_service)
+]
+
+ConversationContextServiceDep = Annotated[
+    ConversationContextService, Depends(get_conversation_context_service)
 ]

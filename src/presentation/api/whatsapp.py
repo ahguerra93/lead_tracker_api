@@ -7,8 +7,8 @@ logic is delegated to the application service layer.
 from fastapi import APIRouter, HTTPException, Request
 
 from config import WebhookConfig
-from ..dependencies import WhatsAppServiceDep
-from ..schemas.whatsapp import WebhookPayload
+from ..dependencies import ConversationContextServiceDep, WhatsAppServiceDep
+from ..schemas.whatsapp import ContextMessage, WebhookPayload
 
 router = APIRouter()
 
@@ -56,3 +56,15 @@ async def receive_message(
         import traceback
         traceback.print_exc()
         raise HTTPException(status_code=500, detail="Internal server error")
+
+
+@router.get(
+    "/conversations/{conversation_id}/context",
+    response_model=list[ContextMessage],
+)
+async def get_conversation_context(
+    conversation_id: int,
+    service: ConversationContextServiceDep,
+    limit: int = 10,
+):
+    return await service.get_recent_context(conversation_id, limit)
