@@ -81,3 +81,10 @@ class WebhookEntry(BaseModel):
 class WebhookPayload(BaseModel):
     object: str
     entry: List[WebhookEntry]
+
+
+class ContextMessage(BaseModel):
+    role: str                    # "customer" (incoming) or "agent" (outgoing)
+    type: str                    # "text", "image", "document", etc.
+    text: Optional[str] = None
+    media_url: Optional[str] = None

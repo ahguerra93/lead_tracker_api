@@ -48,8 +48,8 @@ class IMessageRepository(ABC):
         pass
 
     @abstractmethod
-    async def list_by_conversation(
-        self, conversation_id: int
+    async def get_recent_messages(
+        self, conversation_id: int, limit: int = 10
     ) -> List[Message]:
         pass
 
@@ -57,4 +57,8 @@ class IMessageRepository(ABC):
 class IMediaRepository(ABC):
     @abstractmethod
     async def save(self, media: Media) -> Media:
+        pass
+
+    @abstractmethod
+    async def get_by_message_id(self, message_id: int) -> Optional[Media]:
         pass

@@ -20,6 +20,7 @@ from ...presentation.schemas.whatsapp import (
     WebhookPayload,
     WebhookValue,
 )
+from .conversation_context_service import build_context
 
 
 class WhatsAppWebhookService:
@@ -125,6 +126,15 @@ class WhatsAppWebhookService:
                     print(f"[SERVICE] Updated media record with storage_path={storage_path}", flush=True)
             else:
                 print(f"[SERVICE] No media to persist for message {msg.id}", flush=True)
+
+            # 6. Build and print conversation context (includes the message just saved)
+            if conversation.id is not None:
+                context = await build_context(
+                    uow.messages, uow.media, conversation.id
+                )
+                print(f"[CONTEXT] conversation_id={conversation.id} ({len(context)} messages):", flush=True)
+                for entry in context:
+                    print(f"  {entry.model_dump()}", flush=True)
 
     @staticmethod
     async def _get_or_create_contact(

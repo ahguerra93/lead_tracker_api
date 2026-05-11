@@ -5,7 +5,7 @@ domain layer free of any SQLAlchemy knowledge.
 """
 from typing import List, Optional
 
-from sqlalchemy import select
+from sqlalchemy import desc, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from ...domain.entities.whatsapp import (
@@ -210,15 +210,18 @@ class SQLAlchemyMessageRepository(IMessageRepository):
         await self._session.flush()
         return self._to_entity(orm)
 
-    async def list_by_conversation(
-        self, conversation_id: int
+    async def get_recent_messages(
+        self, conversation_id: int, limit: int = 10
     ) -> List[MessageEntity]:
         result = await self._session.execute(
-            select(MessageORM).where(
-                MessageORM.conversation_id == conversation_id
-            )
+            select(MessageORM)
+            .where(MessageORM.conversation_id == conversation_id)
+            .order_by(desc(MessageORM.message_timestamp))
+            .limit(limit)
         )
-        return [self._to_entity(orm) for orm in result.scalars().all()]
+        rows = result.scalars().all()
+        # Reverse to return in chronological (oldest-first) order
+        return [self._to_entity(orm) for orm in reversed(rows)]
 
 
 # ---------------------------------------------------------------------------
@@ -242,6 +245,13 @@ class SQLAlchemyMediaRepository(IMediaRepository):
             storage_path=orm.bucket_url,
             created_at=orm.created_at,
         )
+
+    async def get_by_message_id(self, message_id: int) -> Optional[MediaEntity]:
+        result = await self._session.execute(
+            select(MediaORM).where(MediaORM.message_id == message_id)
+        )
+        orm = result.scalars().first()
+        return self._to_entity(orm) if orm else None
 
     async def save(self, media: MediaEntity) -> MediaEntity:
         if media.id is not None:
