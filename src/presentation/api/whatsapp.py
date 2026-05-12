@@ -82,4 +82,11 @@ async def extract_lead(
     """Fetch the last *limit* messages for a conversation, build the transcript,
     and return AI-extracted lead intent and summary."""
     result = await service.extract_from_conversation(conversation_id, limit)
-    return LeadExtractionResponse(intent=result.intent, summary=result.summary)
+    return LeadExtractionResponse(
+        intent=result.intent,
+        summary=result.summary,
+        location=result.location,
+        products=result.products,
+        customer_needs=result.customer_needs,
+        budget_hint=result.budget_hint,
+    )

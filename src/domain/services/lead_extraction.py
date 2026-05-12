@@ -7,6 +7,7 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
+from typing import Optional
 
 
 @dataclass
@@ -15,6 +16,10 @@ class LeadExtraction:
 
     intent: str
     summary: str
+    location: Optional[str]
+    products: list[str]
+    customer_needs: list[str]
+    budget_hint: Optional[str]
 
 
 class ILeadExtractionService(ABC):

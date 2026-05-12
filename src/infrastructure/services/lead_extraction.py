@@ -13,8 +13,29 @@ from openai import AsyncOpenAI
 from ...domain.services.lead_extraction import ILeadExtractionService, LeadExtraction
 
 _SYSTEM_PROMPT = (
-    "You extract structured lead information from WhatsApp conversations. "
-    "Return ONLY valid JSON."
+    '''
+You extract structured lead information from WhatsApp conversations.
+
+Return ONLY valid JSON.
+
+Use exactly this structure:
+
+{
+  "intent": string,
+  "summary": string,
+  "location": string | null,
+  "products": string[],
+  "customer_needs": string[],
+  "budget_hint": string | null
+}
+
+Rules:
+- Do not invent information.
+- If data is missing, use null.
+- Keep summaries concise.
+- Products should be short labels.
+- customer_needs should contain practical requirements mentioned by the customer.
+'''
 )
 
 _USER_TEMPLATE = "Conversation:\n\n{transcript}"
@@ -44,8 +65,12 @@ class OpenAILeadExtractionService(ILeadExtractionService):
         result = LeadExtraction(
             intent=data.get("intent", ""),
             summary=data.get("summary", ""),
+            location=data.get("location"),
+            products=data.get("products") or [],
+            customer_needs=data.get("customer_needs") or [],
+            budget_hint=data.get("budget_hint"),
         )
 
-        print(f"[LEAD_EXTRACTION] Extracted: intent={result.intent!r}, summary={result.summary!r}", flush=True)
+        print(f"[LEAD_EXTRACTION] Extracted: {result}", flush=True)
 
         return result
