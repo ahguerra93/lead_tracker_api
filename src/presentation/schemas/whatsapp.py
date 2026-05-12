@@ -101,3 +101,7 @@ class ContextMessage(BaseModel):
 class LeadExtractionResponse(BaseModel):
     intent: str
     summary: str
+    location: Optional[str] = None
+    products: List[str] = []
+    customer_needs: List[str] = []
+    budget_hint: Optional[str] = None
