@@ -88,3 +88,8 @@ class ContextMessage(BaseModel):
     type: str                    # "text", "image", "document", etc.
     text: Optional[str] = None
     media_url: Optional[str] = None
+
+
+class LeadExtractionResponse(BaseModel):
+    intent: str
+    summary: str

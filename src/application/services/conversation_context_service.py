@@ -62,6 +62,36 @@ def _normalize(message, media_url: Optional[str]) -> ContextMessage:
     )
 
 
+_TYPE_LABELS: dict[str, str] = {
+    "image": "[Image attached]",
+    "document": "[Document attached]",
+    "video": "[Video attached]",
+    "audio": "[Audio attached]",
+    "sticker": "[Sticker attached]",
+}
+
+
+def format_as_transcript(context: List[ContextMessage]) -> str:
+    """Render a list of context messages as a human-readable transcript string
+    suitable for feeding into an AI extraction pipeline."""
+    blocks: List[str] = []
+    for msg in context:
+        lines = [f"{msg.role.capitalize()}:"]
+
+        if msg.type == "text":
+            if msg.text:
+                lines.append(msg.text)
+        else:
+            label = _TYPE_LABELS.get(msg.type, f"[{msg.type.capitalize()} attached]")
+            lines.append(label)
+            if msg.text:
+                lines.append(msg.text)
+
+        blocks.append("\n".join(lines))
+
+    return "\n\n".join(blocks)
+
+
 # ---------------------------------------------------------------------------
 # Standalone service — owns its own UoW for the API endpoint
 # ---------------------------------------------------------------------------

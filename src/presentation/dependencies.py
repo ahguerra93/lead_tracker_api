@@ -11,11 +11,14 @@ from ..infrastructure.db import async_session_factory
 from ..infrastructure.unit_of_work import SQLAlchemyUnitOfWork
 from ..infrastructure.services.media_download import HttpxMediaDownloadService
 from ..infrastructure.services.media_storage import SupabaseMediaStorageService
+from ..infrastructure.services.lead_extraction import OpenAILeadExtractionService
 from ..application.services.whatsapp_service import WhatsAppWebhookService
 from ..application.services.conversation_context_service import ConversationContextService
+from ..application.services.lead_extraction_service import LeadExtractionService
 from ..domain.unit_of_work import IUnitOfWork
 from ..domain.services.media_download import IMediaDownloadService
 from ..domain.services.media_storage import IMediaStorageService
+from ..domain.services.lead_extraction import ILeadExtractionService
 from config import WhatsAppConfig, SupabaseConfig
 
 
@@ -49,6 +52,17 @@ def get_conversation_context_service(
     return ConversationContextService(uow)
 
 
+def get_lead_extraction_service_domain() -> ILeadExtractionService:
+    return OpenAILeadExtractionService()
+
+
+def get_lead_extraction_service(
+    uow: Annotated[IUnitOfWork, Depends(get_unit_of_work)],
+    lead_extractor: Annotated[ILeadExtractionService, Depends(get_lead_extraction_service_domain)],
+) -> LeadExtractionService:
+    return LeadExtractionService(uow, lead_extractor)
+
+
 # Convenience type aliases for use in route signatures
 WhatsAppServiceDep = Annotated[
     WhatsAppWebhookService, Depends(get_whatsapp_service)
@@ -56,4 +70,8 @@ WhatsAppServiceDep = Annotated[
 
 ConversationContextServiceDep = Annotated[
     ConversationContextService, Depends(get_conversation_context_service)
+]
+
+LeadExtractionServiceDep = Annotated[
+    LeadExtractionService, Depends(get_lead_extraction_service)
 ]
