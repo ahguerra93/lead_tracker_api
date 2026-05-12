@@ -20,7 +20,7 @@ from ...presentation.schemas.whatsapp import (
     WebhookPayload,
     WebhookValue,
 )
-from .conversation_context_service import build_context
+from .conversation_context_service import build_context, format_as_transcript
 
 
 class WhatsAppWebhookService:
@@ -132,9 +132,8 @@ class WhatsAppWebhookService:
                 context = await build_context(
                     uow.messages, uow.media, conversation.id
                 )
-                print(f"[CONTEXT] conversation_id={conversation.id} ({len(context)} messages):", flush=True)
-                for entry in context:
-                    print(f"  {entry.model_dump()}", flush=True)
+                transcript = format_as_transcript(context)
+                print(f"[CONTEXT] conversation_id={conversation.id}:\n{transcript}", flush=True)
 
     @staticmethod
     async def _get_or_create_contact(

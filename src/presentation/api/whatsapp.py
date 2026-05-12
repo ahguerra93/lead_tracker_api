@@ -7,8 +7,8 @@ logic is delegated to the application service layer.
 from fastapi import APIRouter, HTTPException, Request
 
 from config import WebhookConfig
-from ..dependencies import ConversationContextServiceDep, WhatsAppServiceDep
-from ..schemas.whatsapp import ContextMessage, WebhookPayload
+from ..dependencies import ConversationContextServiceDep, LeadExtractionServiceDep, WhatsAppServiceDep
+from ..schemas.whatsapp import ContextMessage, LeadExtractionResponse, WebhookPayload
 
 router = APIRouter()
 
@@ -68,3 +68,18 @@ async def get_conversation_context(
     limit: int = 10,
 ):
     return await service.get_recent_context(conversation_id, limit)
+
+
+@router.get(
+    "/conversations/{conversation_id}/lead-extraction",
+    response_model=LeadExtractionResponse,
+)
+async def extract_lead(
+    conversation_id: int,
+    service: LeadExtractionServiceDep,
+    limit: int = 10,
+):
+    """Fetch the last *limit* messages for a conversation, build the transcript,
+    and return AI-extracted lead intent and summary."""
+    result = await service.extract_from_conversation(conversation_id, limit)
+    return LeadExtractionResponse(intent=result.intent, summary=result.summary)
