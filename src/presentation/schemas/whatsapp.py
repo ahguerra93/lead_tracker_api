@@ -37,6 +37,13 @@ class WebhookMediaContent(BaseModel):
     caption: Optional[str] = None    # Text caption attached to the media
 
 
+class WebhookReactionContent(BaseModel):
+    """Emoji reaction to a previously sent message."""
+
+    message_id: str   # whatsapp_message_id of the message being reacted to
+    emoji: str
+
+
 class WebhookMessage(BaseModel):
     model_config = ConfigDict(populate_by_name=True)
 
@@ -54,6 +61,7 @@ class WebhookMessage(BaseModel):
     video: Optional[WebhookMediaContent] = None
     audio: Optional[WebhookMediaContent] = None
     sticker: Optional[WebhookMediaContent] = None
+    reaction: Optional[WebhookReactionContent] = None
 
 
 class WebhookMetadata(BaseModel):
