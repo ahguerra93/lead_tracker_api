@@ -208,6 +208,11 @@ class WhatsAppWebhookService:
             if media and media.caption:
                 text_content = media.caption
                 print(f"[SERVICE] Extracted caption from media: {text_content}", flush=True)
+
+        # Reaction: store the emoji as text_content
+        if not text_content and msg.reaction:
+            text_content = msg.reaction.emoji
+            print(f"[SERVICE] Extracted reaction emoji: {text_content}", flush=True)
         
         msg_timestamp = datetime.fromtimestamp(int(msg.timestamp), tz=timezone.utc)
 

@@ -68,6 +68,7 @@ _TYPE_LABELS: dict[str, str] = {
     "video": "[Video attached]",
     "audio": "[Audio attached]",
     "sticker": "[Sticker attached]",
+    "reaction": "[Reaction]",
 }
 
 
