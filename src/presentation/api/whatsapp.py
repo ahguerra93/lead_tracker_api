@@ -89,4 +89,5 @@ async def extract_lead(
         products=result.products,
         customer_needs=result.customer_needs,
         budget_hint=result.budget_hint,
+        lead_temperature=result.lead_temperature,
     )

@@ -20,6 +20,7 @@ class LeadExtraction:
     products: list[str]
     customer_needs: list[str]
     budget_hint: Optional[str]
+    lead_temperature: str  # "cold" | "warm" | "hot"
 
 
 class ILeadExtractionService(ABC):

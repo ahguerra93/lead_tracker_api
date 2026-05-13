@@ -12,6 +12,7 @@ from ..domain.unit_of_work import IUnitOfWork
 from .repositories.whatsapp import (
     SQLAlchemyContactRepository,
     SQLAlchemyConversationRepository,
+    SQLAlchemyLeadInsightRepository,
     SQLAlchemyMediaRepository,
     SQLAlchemyMessageRepository,
 )
@@ -27,6 +28,7 @@ class SQLAlchemyUnitOfWork(IUnitOfWork):
         self.conversations = SQLAlchemyConversationRepository(self._session)
         self.messages = SQLAlchemyMessageRepository(self._session)
         self.media = SQLAlchemyMediaRepository(self._session)
+        self.lead_insights = SQLAlchemyLeadInsightRepository(self._session)
         return self
 
     async def __aexit__(self, *args: object) -> None:

@@ -26,7 +26,8 @@ Use exactly this structure:
   "location": string | null,
   "products": string[],
   "customer_needs": string[],
-  "budget_hint": string | null
+  "budget_hint": string | null,
+  "lead_temperature": "cold" | "warm" | "hot"
 }
 
 Rules:
@@ -35,6 +36,10 @@ Rules:
 - Keep summaries concise.
 - Products should be short labels.
 - customer_needs should contain practical requirements mentioned by the customer.
+- lead_temperature rules:
+  - hot: customer shows strong purchase intent, urgency, or asks for quote/pricing
+  - warm: customer is interested but missing commitment or details
+  - cold: vague curiosity or low intent
 '''
 )
 
@@ -69,6 +74,7 @@ class OpenAILeadExtractionService(ILeadExtractionService):
             products=data.get("products") or [],
             customer_needs=data.get("customer_needs") or [],
             budget_hint=data.get("budget_hint"),
+            lead_temperature=data.get("lead_temperature", "cold"),
         )
 
         print(f"[LEAD_EXTRACTION] Extracted: {result}", flush=True)
