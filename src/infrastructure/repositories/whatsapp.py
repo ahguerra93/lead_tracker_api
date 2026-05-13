@@ -11,18 +11,21 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from ...domain.entities.whatsapp import (
     Contact as ContactEntity,
     Conversation as ConversationEntity,
+    LeadInsight as LeadInsightEntity,
     Media as MediaEntity,
     Message as MessageEntity,
 )
 from ...domain.repositories.whatsapp import (
     IContactRepository,
     IConversationRepository,
+    ILeadInsightRepository,
     IMediaRepository,
     IMessageRepository,
 )
 from ..models.whatsapp_models import (
     Contact as ContactORM,
     Conversation as ConversationORM,
+    LeadInsight as LeadInsightORM,
     Media as MediaORM,
     Message as MessageORM,
 )
@@ -223,6 +226,15 @@ class SQLAlchemyMessageRepository(IMessageRepository):
         # Reverse to return in chronological (oldest-first) order
         return [self._to_entity(orm) for orm in reversed(rows)]
 
+    async def get_latest_message_id(self, conversation_id: int) -> Optional[int]:
+        result = await self._session.execute(
+            select(MessageORM.id)
+            .where(MessageORM.conversation_id == conversation_id)
+            .order_by(desc(MessageORM.message_timestamp))
+            .limit(1)
+        )
+        return result.scalar_one_or_none()
+
 
 # ---------------------------------------------------------------------------
 # Media
@@ -281,6 +293,100 @@ class SQLAlchemyMediaRepository(IMediaRepository):
                 meta_media_id=media.meta_media_id,
                 media_url=media.media_url,
                 bucket_url=media.storage_path,
+            )
+            self._session.add(orm)
+
+        await self._session.flush()
+        return self._to_entity(orm)
+
+
+# ---------------------------------------------------------------------------
+# LeadInsight
+# ---------------------------------------------------------------------------
+
+
+class SQLAlchemyLeadInsightRepository(ILeadInsightRepository):
+    def __init__(self, session: AsyncSession) -> None:
+        self._session = session
+
+    def _to_entity(self, orm: LeadInsightORM) -> LeadInsightEntity:
+        return LeadInsightEntity(
+            id=orm.id,
+            conversation_id=orm.conversation_id,
+            intent=orm.intent,
+            summary=orm.summary,
+            location=orm.location,
+            products=orm.products or [],
+            customer_needs=orm.customer_needs or [],
+            budget_hint=orm.budget_hint,
+            lead_temperature=orm.lead_temperature,
+            raw_ai_response=orm.raw_ai_response,
+            last_analyzed_message_id=orm.last_analyzed_message_id,
+            created_at=orm.created_at,
+            updated_at=orm.updated_at,
+            analyzed_at=orm.analyzed_at,
+        )
+
+    async def get_by_conversation_id(
+        self, conversation_id: int
+    ) -> Optional[LeadInsightEntity]:
+        result = await self._session.execute(
+            select(LeadInsightORM).where(
+                LeadInsightORM.conversation_id == conversation_id
+            )
+        )
+        orm = result.scalar_one_or_none()
+        return self._to_entity(orm) if orm else None
+
+    async def save(self, insight: LeadInsightEntity) -> LeadInsightEntity:
+        from datetime import datetime, timezone
+        now = datetime.now(timezone.utc)
+
+        if insight.id is not None:
+            result = await self._session.execute(
+                select(LeadInsightORM).where(LeadInsightORM.id == insight.id)
+            )
+            orm = result.scalar_one_or_none()
+            if orm:
+                orm.intent = insight.intent
+                orm.summary = insight.summary
+                orm.location = insight.location
+                orm.products = insight.products
+                orm.customer_needs = insight.customer_needs
+                orm.budget_hint = insight.budget_hint
+                orm.lead_temperature = insight.lead_temperature
+                orm.raw_ai_response = insight.raw_ai_response
+                orm.last_analyzed_message_id = insight.last_analyzed_message_id
+                orm.updated_at = now
+                orm.analyzed_at = now
+            else:
+                orm = LeadInsightORM(
+                    conversation_id=insight.conversation_id,
+                    intent=insight.intent,
+                    summary=insight.summary,
+                    location=insight.location,
+                    products=insight.products,
+                    customer_needs=insight.customer_needs,
+                    budget_hint=insight.budget_hint,
+                    lead_temperature=insight.lead_temperature,
+                    raw_ai_response=insight.raw_ai_response,
+                    last_analyzed_message_id=insight.last_analyzed_message_id,
+                    analyzed_at=now,
+                )
+                self._session.add(orm)
+        else:
+            orm = LeadInsightORM(
+                conversation_id=insight.conversation_id,
+                intent=insight.intent,
+                summary=insight.summary,
+                location=insight.location,
+                products=insight.products,
+                customer_needs=insight.customer_needs,
+                budget_hint=insight.budget_hint,
+                lead_temperature=insight.lead_temperature,
+                raw_ai_response=insight.raw_ai_response,
+                last_analyzed_message_id=insight.last_analyzed_message_id,
+                analyzed_at=now,
             )
             self._session.add(orm)
 

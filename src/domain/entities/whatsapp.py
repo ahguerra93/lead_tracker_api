@@ -6,7 +6,7 @@ They represent the core business concepts and encapsulate business rules.
 from __future__ import annotations
 
 from datetime import datetime
-from typing import Any, Optional
+from typing import Any, Dict, List, Optional
 
 from pydantic import BaseModel, Field
 
@@ -72,3 +72,22 @@ class Media(BaseModel):
     storage_path: Optional[str] = None
     
     created_at: datetime = Field(default_factory=datetime.utcnow)
+
+
+class LeadInsight(BaseModel):
+    """AI-extracted lead intelligence cached per conversation."""
+
+    id: Optional[int] = None
+    conversation_id: int
+    intent: Optional[str] = None
+    summary: Optional[str] = None
+    location: Optional[str] = None
+    products: List[str] = Field(default_factory=list)
+    customer_needs: List[str] = Field(default_factory=list)
+    budget_hint: Optional[str] = None
+    lead_temperature: Optional[str] = None  # "cold" | "warm" | "hot"
+    raw_ai_response: Optional[Dict[str, Any]] = None
+    last_analyzed_message_id: Optional[int] = None
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+    updated_at: datetime = Field(default_factory=datetime.utcnow)
+    analyzed_at: datetime = Field(default_factory=datetime.utcnow)

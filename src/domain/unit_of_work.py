@@ -9,6 +9,7 @@ from typing import Self
 from .repositories.whatsapp import (
     IContactRepository,
     IConversationRepository,
+    ILeadInsightRepository,
     IMediaRepository,
     IMessageRepository,
 )
@@ -19,6 +20,7 @@ class IUnitOfWork(ABC):
     conversations: IConversationRepository
     messages: IMessageRepository
     media: IMediaRepository
+    lead_insights: ILeadInsightRepository
 
     @abstractmethod
     async def __aenter__(self) -> Self:

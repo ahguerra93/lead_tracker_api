@@ -105,3 +105,4 @@ class LeadExtractionResponse(BaseModel):
     products: List[str] = []
     customer_needs: List[str] = []
     budget_hint: Optional[str] = None
+    lead_temperature: str = "cold"

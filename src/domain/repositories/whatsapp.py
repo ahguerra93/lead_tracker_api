@@ -7,7 +7,7 @@ infrastructure layer.
 from abc import ABC, abstractmethod
 from typing import List, Optional
 
-from ..entities.whatsapp import Contact, Conversation, Media, Message
+from ..entities.whatsapp import Contact, Conversation, LeadInsight, Media, Message
 
 
 class IContactRepository(ABC):
@@ -53,6 +53,12 @@ class IMessageRepository(ABC):
     ) -> List[Message]:
         pass
 
+    @abstractmethod
+    async def get_latest_message_id(self, conversation_id: int) -> Optional[int]:
+        """Return the DB id of the most recent message in the conversation,
+        or None if the conversation has no messages yet."""
+        pass
+
 
 class IMediaRepository(ABC):
     @abstractmethod
@@ -61,4 +67,16 @@ class IMediaRepository(ABC):
 
     @abstractmethod
     async def get_by_message_id(self, message_id: int) -> Optional[Media]:
+        pass
+
+
+class ILeadInsightRepository(ABC):
+    @abstractmethod
+    async def get_by_conversation_id(
+        self, conversation_id: int
+    ) -> Optional[LeadInsight]:
+        pass
+
+    @abstractmethod
+    async def save(self, insight: LeadInsight) -> LeadInsight:
         pass

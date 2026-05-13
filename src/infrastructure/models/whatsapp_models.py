@@ -125,3 +125,29 @@ class Media(Base):
         Index("ix_media_message_id", "message_id"),
         Index("ix_media_meta_media_id", "meta_media_id"),
     )
+
+
+class LeadInsight(Base):
+    __tablename__ = "lead_insights"
+
+    id = Column(Integer, primary_key=True)
+    conversation_id = Column(
+        Integer, ForeignKey("conversations.id", ondelete="CASCADE"),
+        unique=True, nullable=False,
+    )
+    intent = Column(Text, nullable=True)
+    summary = Column(Text, nullable=True)
+    location = Column(Text, nullable=True)
+    products = Column(JSON, default=list, nullable=True)
+    customer_needs = Column(JSON, default=list, nullable=True)
+    budget_hint = Column(Text, nullable=True)
+    lead_temperature = Column(String(20), nullable=True)
+    raw_ai_response = Column(JSON, nullable=True)
+    last_analyzed_message_id = Column(Integer, nullable=True)
+    created_at = Column(TIMESTAMP(timezone=True), default=datetime.utcnow, nullable=False)
+    updated_at = Column(TIMESTAMP(timezone=True), default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
+    analyzed_at = Column(TIMESTAMP(timezone=True), default=datetime.utcnow, nullable=False)
+
+    __table_args__ = (
+        Index("ix_lead_insights_conversation_id", "conversation_id"),
+    )
