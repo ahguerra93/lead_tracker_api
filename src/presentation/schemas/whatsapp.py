@@ -6,6 +6,7 @@ concept. The service layer consumes these typed objects instead of raw dicts.
 """
 from __future__ import annotations
 
+from datetime import datetime
 from typing import List, Optional
 
 from pydantic import BaseModel, ConfigDict, Field
@@ -106,3 +107,11 @@ class LeadExtractionResponse(BaseModel):
     customer_needs: List[str] = []
     budget_hint: Optional[str] = None
     lead_temperature: str = "cold"
+
+
+class ConversationResponse(BaseModel):
+    id: Optional[int] = None
+    contact_id: int
+    phone_number_id: str
+    created_at: datetime
+    updated_at: datetime

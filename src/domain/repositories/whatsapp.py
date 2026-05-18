@@ -26,6 +26,14 @@ class IContactRepository(ABC):
 
 class IConversationRepository(ABC):
     @abstractmethod
+    async def get_by_id(self, conversation_id: int) -> Optional[Conversation]:
+        pass
+
+    @abstractmethod
+    async def list_recent(self, limit: int = 20) -> List[Conversation]:
+        pass
+
+    @abstractmethod
     async def get_by_contact_and_phone(
         self, contact_id: int, phone_number_id: str
     ) -> Optional[Conversation]:
