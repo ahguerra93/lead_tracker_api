@@ -107,6 +107,21 @@ class SQLAlchemyConversationRepository(IConversationRepository):
             updated_at=orm.updated_at,
         )
 
+    async def get_by_id(self, conversation_id: int) -> Optional[ConversationEntity]:
+        result = await self._session.execute(
+            select(ConversationORM).where(ConversationORM.id == conversation_id)
+        )
+        orm = result.scalar_one_or_none()
+        return self._to_entity(orm) if orm else None
+
+    async def list_recent(self, limit: int = 20) -> List[ConversationEntity]:
+        result = await self._session.execute(
+            select(ConversationORM)
+            .order_by(desc(ConversationORM.updated_at), desc(ConversationORM.id))
+            .limit(limit)
+        )
+        return [self._to_entity(orm) for orm in result.scalars().all()]
+
     async def get_by_contact_and_phone(
         self, contact_id: int, phone_number_id: str
     ) -> Optional[ConversationEntity]:

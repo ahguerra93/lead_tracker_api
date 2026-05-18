@@ -4,11 +4,21 @@ These handlers are intentionally thin: they own only HTTP concerns
 (parsing requests, returning responses, status codes). All business
 logic is delegated to the application service layer.
 """
-from fastapi import APIRouter, HTTPException, Request
+from fastapi import APIRouter, HTTPException, Query, Request
 
 from config import WebhookConfig
-from ..dependencies import ConversationContextServiceDep, LeadExtractionServiceDep, WhatsAppServiceDep
-from ..schemas.whatsapp import ContextMessage, LeadExtractionResponse, WebhookPayload
+from ..dependencies import (
+    ConversationContextServiceDep,
+    ConversationServiceDep,
+    LeadExtractionServiceDep,
+    WhatsAppServiceDep,
+)
+from ..schemas.whatsapp import (
+    ContextMessage,
+    ConversationResponse,
+    LeadExtractionResponse,
+    WebhookPayload,
+)
 
 router = APIRouter()
 
@@ -56,6 +66,48 @@ async def receive_message(
         import traceback
         traceback.print_exc()
         raise HTTPException(status_code=500, detail="Internal server error")
+
+
+@router.get(
+    "/conversations",
+    response_model=list[ConversationResponse],
+)
+async def list_conversations(
+    service: ConversationServiceDep,
+    limit: int = Query(default=20, ge=1, le=20),
+):
+    conversations = await service.list_conversations(limit)
+    return [
+        ConversationResponse(
+            id=conversation.id,
+            contact_id=conversation.contact_id,
+            phone_number_id=conversation.phone_number_id,
+            created_at=conversation.created_at,
+            updated_at=conversation.updated_at,
+        )
+        for conversation in conversations
+    ]
+
+
+@router.get(
+    "/conversations/{conversation_id}",
+    response_model=ConversationResponse,
+)
+async def get_conversation(
+    conversation_id: int,
+    service: ConversationServiceDep,
+):
+    conversation = await service.get_conversation(conversation_id)
+    if conversation is None:
+        raise HTTPException(status_code=404, detail="Conversation not found")
+
+    return ConversationResponse(
+        id=conversation.id,
+        contact_id=conversation.contact_id,
+        phone_number_id=conversation.phone_number_id,
+        created_at=conversation.created_at,
+        updated_at=conversation.updated_at,
+    )
 
 
 @router.get(

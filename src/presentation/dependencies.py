@@ -12,6 +12,7 @@ from ..infrastructure.unit_of_work import SQLAlchemyUnitOfWork
 from ..infrastructure.services.media_download import HttpxMediaDownloadService
 from ..infrastructure.services.media_storage import SupabaseMediaStorageService
 from ..infrastructure.services.lead_extraction import OpenAILeadExtractionService
+from ..application.services.conversation_service import ConversationService
 from ..application.services.whatsapp_service import WhatsAppWebhookService
 from ..application.services.conversation_context_service import ConversationContextService
 from ..application.services.lead_extraction_service import LeadExtractionService
@@ -52,6 +53,12 @@ def get_conversation_context_service(
     return ConversationContextService(uow)
 
 
+def get_conversation_service(
+    uow: Annotated[IUnitOfWork, Depends(get_unit_of_work)],
+) -> ConversationService:
+    return ConversationService(uow)
+
+
 def get_lead_extraction_service_domain() -> ILeadExtractionService:
     return OpenAILeadExtractionService()
 
@@ -70,6 +77,10 @@ WhatsAppServiceDep = Annotated[
 
 ConversationContextServiceDep = Annotated[
     ConversationContextService, Depends(get_conversation_context_service)
+]
+
+ConversationServiceDep = Annotated[
+    ConversationService, Depends(get_conversation_service)
 ]
 
 LeadExtractionServiceDep = Annotated[
