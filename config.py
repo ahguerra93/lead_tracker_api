@@ -69,3 +69,17 @@ class SupabaseConfig:
     SUPABASE_URL: str = os.getenv("SUPABASE_URL", "")
     SUPABASE_SERVICE_ROLE_KEY: str = os.getenv("SUPABASE_SERVICE_ROLE_KEY", "")
     MEDIA_BUCKET: str = os.getenv("SUPABASE_MEDIA_BUCKET", "whatsapp-media")
+
+
+class CorsConfig:
+    # Comma-separated list of allowed origins. Example:
+    # CORS_ALLOW_ORIGINS=https://app.example.com,http://localhost:5173
+    _raw_allow_origins = os.getenv("CORS_ALLOW_ORIGINS", "http://localhost:61059,http://localhost:8080")
+    ALLOW_ORIGINS: list[str] = [
+        origin.strip()
+        for origin in _raw_allow_origins.split(",")
+        if origin.strip()
+    ]
+    ALLOW_METHODS: list[str] = ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"]
+    ALLOW_HEADERS: list[str] = ["*"]
+    ALLOW_CREDENTIALS: bool = os.getenv("CORS_ALLOW_CREDENTIALS", "false").lower() == "true"
