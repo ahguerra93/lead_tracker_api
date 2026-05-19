@@ -12,6 +12,10 @@ from ..entities.whatsapp import Contact, Conversation, LeadInsight, Media, Messa
 
 class IContactRepository(ABC):
     @abstractmethod
+    async def get_by_id(self, contact_id: int) -> Optional[Contact]:
+        pass
+
+    @abstractmethod
     async def get_by_wa_id(self, wa_id: str) -> Optional[Contact]:
         pass
 
