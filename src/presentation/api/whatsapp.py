@@ -128,11 +128,13 @@ async def get_conversation(
         ) if detail.contact else None,
         messages=[
             MessageSummary(
-                id=m.id,
-                direction=m.direction,
-                message_type=m.message_type,
-                text_content=m.text_content,
-                message_timestamp=m.message_timestamp,
+                id=m.message.id,
+                direction=m.message.direction,
+                message_type=m.message.message_type,
+                text_content=m.message.text_content,
+                message_timestamp=m.message.message_timestamp,
+                media_url=m.media_url,
+                caption=m.caption,
             )
             for m in detail.messages
         ],

@@ -128,6 +128,8 @@ class MessageSummary(BaseModel):
     message_type: str
     text_content: Optional[str] = None
     message_timestamp: datetime
+    media_url: Optional[str] = None
+    caption: Optional[str] = None
 
 
 class ConversationListItemResponse(BaseModel):
