@@ -14,9 +14,13 @@ from ..dependencies import (
     WhatsAppServiceDep,
 )
 from ..schemas.whatsapp import (
+    ContactInfo,
     ContextMessage,
+    ConversationDetailResponse,
+    ConversationListItemResponse,
     ConversationResponse,
     LeadExtractionResponse,
+    MessageSummary,
     WebhookPayload,
 )
 
@@ -70,43 +74,68 @@ async def receive_message(
 
 @router.get(
     "/conversations",
-    response_model=list[ConversationResponse],
+    response_model=list[ConversationListItemResponse],
 )
 async def list_conversations(
     service: ConversationServiceDep,
     limit: int = Query(default=20, ge=1, le=20),
 ):
-    conversations = await service.list_conversations(limit)
+    summaries = await service.list_conversations_with_details(limit)
     return [
-        ConversationResponse(
-            id=conversation.id,
-            contact_id=conversation.contact_id,
-            phone_number_id=conversation.phone_number_id,
-            created_at=conversation.created_at,
-            updated_at=conversation.updated_at,
+        ConversationListItemResponse(
+            id=s.conversation.id,
+            contact_id=s.conversation.contact_id,
+            phone_number_id=s.conversation.phone_number_id,
+            created_at=s.conversation.created_at,
+            updated_at=s.conversation.updated_at,
+            contact=ContactInfo(
+                wa_id=s.contact.wa_id,
+                name=s.contact.name,
+            ) if s.contact else None,
+            last_message=MessageSummary(
+                id=s.last_message.id,
+                direction=s.last_message.direction,
+                message_type=s.last_message.message_type,
+                text_content=s.last_message.text_content,
+                message_timestamp=s.last_message.message_timestamp,
+            ) if s.last_message else None,
         )
-        for conversation in conversations
+        for s in summaries
     ]
 
 
 @router.get(
     "/conversations/{conversation_id}",
-    response_model=ConversationResponse,
+    response_model=ConversationDetailResponse,
 )
 async def get_conversation(
     conversation_id: int,
     service: ConversationServiceDep,
 ):
-    conversation = await service.get_conversation(conversation_id)
-    if conversation is None:
+    detail = await service.get_conversation_with_details(conversation_id)
+    if detail is None:
         raise HTTPException(status_code=404, detail="Conversation not found")
 
-    return ConversationResponse(
-        id=conversation.id,
-        contact_id=conversation.contact_id,
-        phone_number_id=conversation.phone_number_id,
-        created_at=conversation.created_at,
-        updated_at=conversation.updated_at,
+    return ConversationDetailResponse(
+        id=detail.conversation.id,
+        contact_id=detail.conversation.contact_id,
+        phone_number_id=detail.conversation.phone_number_id,
+        created_at=detail.conversation.created_at,
+        updated_at=detail.conversation.updated_at,
+        contact=ContactInfo(
+            wa_id=detail.contact.wa_id,
+            name=detail.contact.name,
+        ) if detail.contact else None,
+        messages=[
+            MessageSummary(
+                id=m.id,
+                direction=m.direction,
+                message_type=m.message_type,
+                text_content=m.text_content,
+                message_timestamp=m.message_timestamp,
+            )
+            for m in detail.messages
+        ],
     )
 
 

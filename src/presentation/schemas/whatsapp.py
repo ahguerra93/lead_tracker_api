@@ -115,3 +115,36 @@ class ConversationResponse(BaseModel):
     phone_number_id: str
     created_at: datetime
     updated_at: datetime
+
+
+class ContactInfo(BaseModel):
+    wa_id: str
+    name: Optional[str] = None
+
+
+class MessageSummary(BaseModel):
+    id: Optional[int] = None
+    direction: str
+    message_type: str
+    text_content: Optional[str] = None
+    message_timestamp: datetime
+
+
+class ConversationListItemResponse(BaseModel):
+    id: Optional[int] = None
+    contact_id: int
+    phone_number_id: str
+    created_at: datetime
+    updated_at: datetime
+    contact: Optional[ContactInfo] = None
+    last_message: Optional[MessageSummary] = None
+
+
+class ConversationDetailResponse(BaseModel):
+    id: Optional[int] = None
+    contact_id: int
+    phone_number_id: str
+    created_at: datetime
+    updated_at: datetime
+    contact: Optional[ContactInfo] = None
+    messages: List[MessageSummary] = []

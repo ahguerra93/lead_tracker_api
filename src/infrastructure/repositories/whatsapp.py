@@ -56,6 +56,13 @@ class SQLAlchemyContactRepository(IContactRepository):
         orm = result.scalar_one_or_none()
         return self._to_entity(orm) if orm else None
 
+    async def get_by_id(self, contact_id: int) -> Optional[ContactEntity]:
+        result = await self._session.execute(
+            select(ContactORM).where(ContactORM.id == contact_id)
+        )
+        orm = result.scalar_one_or_none()
+        return self._to_entity(orm) if orm else None
+
     async def save(self, contact: ContactEntity) -> ContactEntity:
         if contact.id is not None:
             result = await self._session.execute(
