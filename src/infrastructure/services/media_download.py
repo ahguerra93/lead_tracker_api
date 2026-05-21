@@ -27,13 +27,11 @@ _MIME_EXT_OVERRIDES: dict[str, str] = {
 class HttpxMediaDownloadService(IMediaDownloadService):
     """Downloads WhatsApp media using an async ``httpx.AsyncClient``."""
 
-    def __init__(self, access_token: str) -> None:
-        self._access_token = access_token
-
     async def download(
         self,
         url: str,
         media_id: str,
+        access_token: str,
         mime_type: Optional[str] = None,
     ) -> Path:
         os.makedirs(MEDIA_DIR, exist_ok=True)
@@ -44,7 +42,7 @@ class HttpxMediaDownloadService(IMediaDownloadService):
         async with httpx.AsyncClient() as client:
             response = await client.get(
                 url,
-                headers={"Authorization": f"Bearer {self._access_token}"},
+                headers={"Authorization": f"Bearer {access_token}"},
                 follow_redirects=True,
             )
             response.raise_for_status()

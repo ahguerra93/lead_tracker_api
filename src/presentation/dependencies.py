@@ -12,6 +12,7 @@ from ..infrastructure.unit_of_work import SQLAlchemyUnitOfWork
 from ..infrastructure.services.media_download import HttpxMediaDownloadService
 from ..infrastructure.services.media_storage import SupabaseMediaStorageService
 from ..infrastructure.services.lead_extraction import OpenAILeadExtractionService
+from ..application.services.business_service import BusinessService
 from ..application.services.conversation_service import ConversationService
 from ..application.services.whatsapp_service import WhatsAppWebhookService
 from ..application.services.conversation_context_service import ConversationContextService
@@ -20,7 +21,7 @@ from ..domain.unit_of_work import IUnitOfWork
 from ..domain.services.media_download import IMediaDownloadService
 from ..domain.services.media_storage import IMediaStorageService
 from ..domain.services.lead_extraction import ILeadExtractionService
-from config import WhatsAppConfig, SupabaseConfig
+from config import SupabaseConfig
 
 
 def get_unit_of_work() -> IUnitOfWork:
@@ -28,7 +29,7 @@ def get_unit_of_work() -> IUnitOfWork:
 
 
 def get_media_download_service() -> IMediaDownloadService:
-    return HttpxMediaDownloadService(WhatsAppConfig.META_ACCESS_TOKEN)
+    return HttpxMediaDownloadService()
 
 
 def get_media_storage_service() -> IMediaStorageService:
@@ -57,6 +58,12 @@ def get_conversation_service(
     uow: Annotated[IUnitOfWork, Depends(get_unit_of_work)],
 ) -> ConversationService:
     return ConversationService(uow)
+
+
+def get_business_service(
+    uow: Annotated[IUnitOfWork, Depends(get_unit_of_work)],
+) -> BusinessService:
+    return BusinessService(uow)
 
 
 def get_lead_extraction_service_domain() -> ILeadExtractionService:
