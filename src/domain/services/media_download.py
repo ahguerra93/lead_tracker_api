@@ -18,9 +18,11 @@ class IMediaDownloadService(ABC):
         self,
         url: str,
         media_id: str,
+        access_token: str,
         mime_type: Optional[str] = None,
     ) -> Path:
-        """Fetch *url* and write the response body to disk.
+        """Fetch *url* authenticated with *access_token* and write the
+        response body to disk.
 
         Returns the ``Path`` of the saved file so callers can validate or
         forward it to a storage backend later.

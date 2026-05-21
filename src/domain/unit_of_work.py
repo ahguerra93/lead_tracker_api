@@ -6,6 +6,7 @@ ensuring atomicity across multiple repository operations.
 from abc import ABC, abstractmethod
 from typing import Self
 
+from .repositories.business import IBusinessRepository
 from .repositories.whatsapp import (
     IContactRepository,
     IConversationRepository,
@@ -16,6 +17,7 @@ from .repositories.whatsapp import (
 
 
 class IUnitOfWork(ABC):
+    businesses: IBusinessRepository
     contacts: IContactRepository
     conversations: IConversationRepository
     messages: IMessageRepository

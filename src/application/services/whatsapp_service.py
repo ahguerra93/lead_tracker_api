@@ -62,6 +62,18 @@ class WhatsAppWebhookService:
         phone_number_id: str = value.metadata.phone_number_id
         print(f"[SERVICE] Handling {len(value.messages)} messages", flush=True)
 
+        business = await uow.businesses.get_by_phone_number_id(phone_number_id)
+        if business is None:
+            print(
+                f"[SERVICE] No business found for phone_number_id={phone_number_id}, skipping",
+                flush=True,
+            )
+            return
+        print(
+            f"[SERVICE] Resolved business id={business.id} name={business.name}",
+            flush=True,
+        )
+
         for msg in value.messages:
             print(f"[SERVICE] Processing message id={msg.id}, type={msg.type}", flush=True)
             # 1. Get or create contact
@@ -106,24 +118,31 @@ class WhatsAppWebhookService:
 
                 # Download the file to a temporary location, then upload to storage
                 if media_content.url:
-                    file_path = await self._media_downloader.download(
-                        url=media_content.url,
-                        media_id=media_content.id,
-                        mime_type=media_content.mime_type,
-                    )
-                    print(f"[SERVICE] Media file ready at {file_path}", flush=True)
+                    if not business.meta_access_token:
+                        print(
+                            f"[SERVICE] Business has no meta_access_token, skipping download",
+                            flush=True,
+                        )
+                    else:
+                        file_path = await self._media_downloader.download(
+                            url=media_content.url,
+                            media_id=media_content.id,
+                            access_token=business.meta_access_token,
+                            mime_type=media_content.mime_type,
+                        )
+                        print(f"[SERVICE] Media file ready at {file_path}", flush=True)
 
-                    storage_path = f"{msg.type}s/{media_content.id}{file_path.suffix}"
-                    await self._media_storage.upload(
-                        file_path=file_path,
-                        storage_path=storage_path,
-                        content_type=media_content.mime_type,
-                    )
-                    print(f"[SERVICE] Uploaded media to storage at {storage_path}", flush=True)
+                        storage_path = f"{msg.type}s/{media_content.id}{file_path.suffix}"
+                        await self._media_storage.upload(
+                            file_path=file_path,
+                            storage_path=storage_path,
+                            content_type=media_content.mime_type,
+                        )
+                        print(f"[SERVICE] Uploaded media to storage at {storage_path}", flush=True)
 
-                    saved_media.storage_path = storage_path
-                    saved_media = await uow.media.save(saved_media)
-                    print(f"[SERVICE] Updated media record with storage_path={storage_path}", flush=True)
+                        saved_media.storage_path = storage_path
+                        saved_media = await uow.media.save(saved_media)
+                        print(f"[SERVICE] Updated media record with storage_path={storage_path}", flush=True)
             else:
                 print(f"[SERVICE] No media to persist for message {msg.id}", flush=True)
 
