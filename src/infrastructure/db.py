@@ -3,6 +3,7 @@
 This is the only place in the infrastructure layer that knows about
 the database connection string and SQLAlchemy engine configuration.
 """
+from sqlalchemy.engine.url import make_url
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 
 from config import DatabaseConfig
@@ -21,6 +22,9 @@ engine = create_async_engine(
     connect_args=_connect_args,
     echo=False,
 )
+_safe_database_target = make_url(DatabaseConfig.get_async_database_url()).render_as_string(
+    hide_password=True
+)
 
 async_session_factory = async_sessionmaker(
     engine,
@@ -34,5 +38,14 @@ async def create_all_tables() -> None:
 
     Called once at application startup. Safe to call repeatedly.
     """
-    async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.create_all)
+    try:
+        async with engine.begin() as conn:
+            await conn.run_sync(Base.metadata.create_all)
+    except Exception as exc:
+        raise RuntimeError(
+            "Database startup failed for "
+            f"{_safe_database_target}. Check the deployed DATABASE_URL/DB_* values. "
+            "Supabase shared pooler URLs use the project ref in the username "
+            "(postgres.<project-ref>), while direct or dedicated connections use "
+            "the plain postgres username."
+        ) from exc
