@@ -5,6 +5,7 @@ Environment variables allow different settings per environment (dev, staging, pr
 """
 import os
 from dotenv import load_dotenv
+from sqlalchemy.engine.url import URL, make_url
 
 # Load .env file for local development
 load_dotenv()
@@ -30,15 +31,12 @@ class DatabaseConfig:
         Otherwise, build the URL from individual DB_* variables.
         """
         if cls.DATABASE_URL:
-            # Replace postgres:// or postgresql:// with the asyncpg variant.
-            url = cls.DATABASE_URL
-            if url.startswith("postgres://"):
-                url = url.replace("postgres://", "postgresql+asyncpg://", 1)
-            elif url.startswith("postgresql://"):
-                url = url.replace("postgresql://", "postgresql+asyncpg://", 1)
-            return url
+            parsed_url = make_url(cls.DATABASE_URL)
+            drivername = parsed_url.drivername
+            if drivername in {"postgres", "postgresql"}:
+                parsed_url = parsed_url.set(drivername="postgresql+asyncpg")
+            return parsed_url.render_as_string(hide_password=False)
 
-        from sqlalchemy.engine.url import URL
         return str(
             URL.create(
                 drivername="postgresql+asyncpg",
